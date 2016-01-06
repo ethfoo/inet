@@ -33,6 +33,7 @@ bject files
 
 #vim
 *.swap
+*.c.swap
 
 *.class
 
