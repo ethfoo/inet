@@ -52,7 +52,14 @@ int main(int argc, char *argv[])
 	if(clnt_sock == -1)
 		error_handling("accept() error");
 
-	write(clnt_sock, message, sizeof(message));
+	char receiv[30];
+	memset( receiv, '\0', 30);
+	if( read(clnt_sock, receiv, sizeof(receiv)-1) == -1)
+		error_handling("read error");
+
+	printf("%s\n", receiv);
+
+//	write(clnt_sock, message, sizeof(message));
 	close(clnt_sock);
 	close(serv_sock);
 	printf("closed\n");

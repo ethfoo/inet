@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 {
 	int sock;
 	struct sockaddr_in serv_addr;
-	char message[30];
+	char message[30] = "from client";
 	int str_len;
 	char *port = "2500";
 
@@ -35,11 +35,22 @@ int main(int argc, char* argv[])
 		error_handling("connect() error");
 	printf("connected\n");
 
+
+	str_len = write(sock, message, 30);
+	if(str_len == -1)
+		error_handling("write() error");
+	printf("had send: %s\n", message);
+
+	memset( message, '\0', sizeof(message));
+	
+
 	str_len = read(sock, message, sizeof(message)-1);
 	if(str_len == -1)
 		error_handling("read() error");
+		
 
 	printf("Message from server: %s \n", message);
+
 	close(sock);
 	printf("closed\n");
 	return 0;

@@ -12,7 +12,6 @@
 
 int main()
 {
-	printf("main");
 	char *port = "2500";
 
 	int ret = 0;
@@ -37,15 +36,15 @@ int main()
 
 	serv_sock = socket(AF_INET, SOCK_STREAM, 0);
 	assert( serv_sock >= 0 );
-	printf("socket");
+	printf("socket\n");
 
 	ret = bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 	assert(ret != -1);
-	printf("bind");
+	printf("bind\n");
 
 	ret = listen(serv_sock, 2);
 	assert( ret != -1 );
-	printf("listenning..");
+	printf("listenning.., ret=%d\n", ret);
 
 	FD_SET(serv_sock, &read_set);
 	fd_max = serv_sock;
@@ -54,32 +53,37 @@ int main()
 	{
 		cpy_read_set = read_set;
 		
-		if( (fd_num = select(fd_max+1, &cpy_read_set, 0, 0, 0)) == -1 )
+		if( (fd_num = select(fd_max+1, &cpy_read_set, NULL, NULL, NULL)) == -1 )
+		{
 			break;
+		}
 		if( fd_num == 0 )
+		{
 			continue;
+		}
 
-		for( i = 0; i<fd_max; i++)
+		for( i = 0; i<=fd_max; i++)
 		{
 			if( FD_ISSET(i, &cpy_read_set))
 			{
 				if( i == serv_sock )
 				{
-					printf(" i==serv_sock");
 					clnt_addr_size = sizeof(clnt_addr);
 					clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size);
-					printf("accepted");
+					printf("accepted\n");
+					printf("connected client: %d \n", clnt_sock);
 					assert( clnt_sock != -1 );
 					FD_SET( clnt_sock, &read_set );
 					if( fd_max < clnt_sock )
 						fd_max = clnt_sock;
-					printf("connected client: %d \n", clnt_sock);
 				}
 				else
 				{
 					str_len = read(i, buf, BUF_SIZE);
 					if(str_len == 0)
 					{
+						printf("received: %s\n", buf);
+
 						FD_CLR( i, &read_set );
 						close(i);
 						printf("closed client: %d \n", i);
