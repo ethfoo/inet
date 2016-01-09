@@ -8,9 +8,10 @@ pthread_mutexattr_t m_attr;
 
 int main()
 {
-	pthread_mutexattr_init(&m_attr);
-	pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_mutexA, &m_attr);
+	//pthread_mutexattr_init(&m_attr);
+	//pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE);
+	//pthread_mutex_init(&m_mutexA, &m_attr);
+	pthread_mutex_init(&m_mutexA, NULL);
 
 	pthread_mutex_lock(&m_mutexA);
 	pthread_mutex_lock(&m_mutexA);
