@@ -7,11 +7,12 @@
 #include <sys/epoll.h>
 #include <errno.h>
 
-#define BUF_SIZE 100
+#define BUF_SIZE 10
 #define EPOLL_SIZE 50
 
 int main(int argc, char **argv)
 {
+	char *port = "2500";
 	int serv_sock, clnt_sock;
 	struct sockaddr_in serv_adr, clnt_adr;
 	socklen_t adr_sz;
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
 	memset(&serv_adr, 0, sizeof(serv_adr));
 	serv_adr.sin_family = AF_INET;
 	serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_adr.sin_port = htons(atoi(argv[1]));
+	serv_adr.sin_port = htons(atoi(port));
 
 	if(bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr)) == -1)
 		perror("bind error");
@@ -65,9 +66,14 @@ int main(int argc, char **argv)
 				str_len = read(ep_events[i].data.fd, buf, BUF_SIZE);
 				if(str_len == 0)
 				{
+					printf("receive: %s\n", buf);
 					epoll_ctl(epfd, EPOLL_CTL_DEL, ep_events[i].data.fd, NULL);
 					close(ep_events[i].data.fd);
 					printf("closed client: %d \n", ep_events[i].data.fd);
+				}
+				else if(str_len == -1)
+				{
+					printf("there is noting to read");
 				}
 				else
 				{
@@ -76,10 +82,10 @@ int main(int argc, char **argv)
 			}
 		}
 
-		close(serv_sock);
-		close(epfd);
-		return 0;
 	}
+	close(serv_sock);
+	close(epfd);
+	return 0;
 }
 
 

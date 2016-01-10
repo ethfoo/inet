@@ -6,9 +6,25 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <assert.h>
+#include <errno.h>
+#include <signal.h>
 
 #define EPOLL_SIZE 50
-#define BUF_SIZE 100
+#define BUF_SIZE 10
+
+int sigpipe_ignore()
+{
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(struct sigaction));
+	sa.sa_handler = SIG_IGN;
+	if( sigaction(SIGPIPE, &sa, NULL ))
+	{
+		perror("sigaction error\n");
+		return -1;
+	}
+	return 0;
+}
+
 int main()
 {
 
@@ -21,6 +37,8 @@ int main()
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(2500);
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	sigpipe_ignore();
 
 	serv_sock = socket(AF_INET, SOCK_STREAM, 0);
 	assert( serv_sock != -1 );
@@ -47,13 +65,14 @@ int main()
 	
 	int str_len;
 	char buf[BUF_SIZE]; 
-
+	memset(buf, '\0', BUF_SIZE); 
 	while(1)
 	{
 
 		epcnt = epoll_wait(epfd, events, EPOLL_SIZE, -1);
 		if( epcnt == -1 )
 		{
+			perror("epoll_wait error\n");
 			break;
 		}
 		int i;
@@ -72,17 +91,20 @@ int main()
 			}
 			else if(events[i].events & EPOLLIN) 
 			{
-				str_len = read(events[i].data.fd, buf, BUF_SIZE);
-				//读取完
-				if( str_len == 0 )
+				printf("event trigger once\n");
+				memset(buf, '\0', BUF_SIZE); 
+				str_len = read(events[i].data.fd, buf, BUF_SIZE-1);
+				printf("receive: %s\n", buf);
+				if( str_len <= 0 )
 				{
-					printf("receive: %s\n", buf);
 					epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
 					close(events[i].data.fd);
+					//perror("str_len==0\n");
 					printf("closed client: %d\n", events[i].data.fd);
 				}
 				else
 				{
+					//?write会中断循环
 					write(events[i].data.fd, buf, str_len);
 				}
 			}
