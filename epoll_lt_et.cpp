@@ -73,6 +73,7 @@ void lt(epoll_event * events, int number, int epollfd, int listenfd)
 			if( ret <= 0 )
 			{
 				close(sockfd);
+				printf("close client: %d\n", sockfd);
 				continue;
 			}
 			//test write
@@ -114,15 +115,18 @@ void et(epoll_event *events, int number, int epollfd, int listenfd)
 						printf("read later\n");
 						break;
 					}
+					printf("ret<0, close client: %d\n", sockfd);
 					close(sockfd);
 					break;
 				}
 				else if( ret == 0 )
 				{
+					printf("ret==0, close client: %d\n", sockfd);
 					close(sockfd);
 				}
 				else
 				{
+					write(sockfd, buf, ret);
 					printf("get %d bytes of content: %s\n", ret, buf);
 				}
 			}
@@ -172,7 +176,7 @@ int main()
 			break;
 		}
 		lt( events, ret, epollfd, listenfd );
-//		et( events, ret, epollfd, listenfd );
+		//et( events, ret, epollfd, listenfd );
 
 	}
 
