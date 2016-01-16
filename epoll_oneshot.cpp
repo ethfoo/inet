@@ -127,6 +127,7 @@ int main()
 	int epollfd = epoll_create(5);
 	assert(epollfd != -1);
 
+	//监听socket是不能注册EPOLLONESHOT事件的，否则应用程序只能处理一个客户连接
 	addfd( epollfd, listenfd, false );
 	
 	while(1)
